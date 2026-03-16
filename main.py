@@ -1,13 +1,15 @@
+import os
 import subprocess
 from datetime import datetime
+from typing import List
 
 import markdown
 from google import genai
 from pydantic import BaseModel
-from typing import List
 
 from mail import push_mail
 
+from dotenv import load_dotenv
 
 # The innermost item
 class Job(BaseModel):
@@ -24,8 +26,8 @@ class Company(BaseModel):
 class CompanyJobListing(BaseModel):
     companies: List[Company]
 
-
-client = genai.Client(api_key="AIzaSyCO1pliR4ZRNywtE6iDIsYe1G9tJTnmWe8")
+load_dotenv()
+client = genai.Client(api_key=os.getenv("API_KEY"))
 
 
 def format_jobs_to_markdown(job_listing: CompanyJobListing) -> str:
