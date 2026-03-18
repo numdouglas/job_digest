@@ -10,6 +10,8 @@ from pydantic import BaseModel
 from mail import push_mail
 
 from dotenv import load_dotenv
+from google.genai import types
+
 
 # The innermost item
 class Job(BaseModel):
@@ -25,6 +27,7 @@ class Company(BaseModel):
 # The overall response structure (The 2D-like list)
 class CompanyJobListing(BaseModel):
     companies: List[Company]
+
 
 load_dotenv()
 client = genai.Client(api_key=os.getenv("API_KEY"))
@@ -61,16 +64,18 @@ def fetch_job_listings(company_list) -> CompanyJobListing:
     prompt = f"""
     Find open roles at these companies: {company_list}.
     Look in the company careers website as well as linkedin and indeed.
+    Note that the number of job postings will likely vary per company, some might have 3, others none others even 20.
     Return a list for each company containing their open jobs.
     """
 
     response = client.models.generate_content(
         model='gemini-2.5-flash',
         contents=prompt,
-        config={
-            'response_mime_type': 'application/json',
-            'response_schema': CompanyJobListing,
-        }
+        config=types.GenerateContentConfig(
+            temperature=0.5,
+            # tools=[types.Tool(google_search=types.GoogleSearch())],
+            response_mime_type="application/json",
+            response_schema=CompanyJobListing)
     )
 
     # Access the data naturally
